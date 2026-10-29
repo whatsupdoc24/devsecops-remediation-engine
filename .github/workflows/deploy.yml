@@ -1,0 +1,7 @@
+# Secure Federation: Exchange short-lived JWT for AWS credentials (Zero long-lived API keys)
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::395632092176:role/github-actions-oidc-execution-role
+          aws-region: us-east-1
+          audience: ://amazonaws.com
