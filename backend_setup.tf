@@ -1,10 +1,10 @@
 # Secure S3 Bucket for Infrastructure State Tracking
 resource "aws_s3_bucket" "tf_state" {
   bucket        = "kyle-boobie-24" # Change this string to make it unique to you!
-  force_destroy = false                                
+  force_destroy = false
 
   lifecycle {
-    prevent_destroy = true 
+    prevent_destroy = true
   }
 }
 
@@ -40,8 +40,8 @@ resource "aws_s3_bucket_public_access_block" "state_public_block" {
 # DynamoDB State Locking Table (Prevents Concurrent Pipeline Collisions)
 resource "aws_dynamodb_table" "tf_locks" {
   name         = "terraform-state-lock-table"
-  billing_mode = "PAY_PER_REQUEST" 
-  hash_key     = "LockID"         
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
 
   attribute {
     name = "LockID"
