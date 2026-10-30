@@ -52,6 +52,9 @@ jobs:
           role-to-assume: arn:aws:iam::395632092176:role/GitHubActionsDeploymentRoleV2
           aws-region: us-east-1
           audience: sts.amazonaws.com
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
           
       - name: Terraform Init
         run: terraform init
