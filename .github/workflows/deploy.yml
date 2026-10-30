@@ -47,33 +47,30 @@ jobs:
     needs: validate-and-test
     runs-on: ubuntu-latest
     environment: production
-
-     permissions:
-    id-token: write
-    contents: read
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.7
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
 
-      - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::395632092176:role/GitHubActionsDeploymentRole
-          aws-region: us-east-1
+    - name: Configure AWS Credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::395632092176:role/GitHubActionsDeploymentRole
+        aws-region: us-east-1
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -out=tfplan
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -out=tfplan
-        
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -input=false tfplan
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -input-false tfplan
+
