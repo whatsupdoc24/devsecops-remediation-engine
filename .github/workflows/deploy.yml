@@ -42,6 +42,11 @@ jobs:
         with:
           terraform_version: 1.5.7
 
+      - name: OIDC Debugger
+        run: |
+          echo "The exact token subject string is:"
+          echo "repo:${{ github.repository }}:ref:${{ github.ref }}"
+
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
