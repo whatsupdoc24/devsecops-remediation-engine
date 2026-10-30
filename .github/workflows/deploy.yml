@@ -23,9 +23,9 @@ jobs:
         run: |
           terraform init -backend=false
           terraform validate
-
+          
   deploy-infrastructure:
-    name: "2. Secure OIDC Plan & Apply"
+    name: "2. Secure OIDC Terraform Plan"
     needs: validate-and-test
     runs-on: ubuntu-latest
     permissions:
@@ -39,13 +39,54 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
+          terraform_version: 1.10.5 
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::395632092176:role/GitHubActionsDeploymentRoleV2
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: tfplan
+          retention-days: 1
+          if-no-files-found: error
+ 
+  terraform-apply:
+    name: "3. Approved Terraform Apply"
+    needs: deploy-infrastructure
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+          
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
           terraform_version: 1.10.5
-
-      - name: OIDC Debugger
-        run: |
-          echo "The exact token subject string is:"
-          echo "repo:${{ github.repository }}:ref:${{ github.ref }}"
-
+          
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -59,10 +100,12 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -out=tfplan
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -input=false tfplan
+      - name: Approval Gate Test
+        run: echo "Manual approval succeeded. No infrastructure changes applied."
+ 
+    
