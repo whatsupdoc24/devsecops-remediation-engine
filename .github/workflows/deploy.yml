@@ -64,5 +64,5 @@ jobs:
         run: terraform plan -no-color -out=tfplan
 
       - name: Terraform Apply
-        if: false
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -input=false tfplan
